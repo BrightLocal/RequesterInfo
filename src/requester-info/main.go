@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	http.Start()
+	http.New().Start()
 }
