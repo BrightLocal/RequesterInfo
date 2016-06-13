@@ -1,8 +1,6 @@
 package geo
 
 import (
-	"log"
-
 	"github.com/abh/geoip"
 )
 
@@ -19,20 +17,16 @@ type Loc struct {
 	Longitude   float32 `json:"longitude"`
 }
 
-func New() *Geo {
+func New() (*Geo, error) {
+	var err error
 	g := &Geo{}
-	gi, err := geoip.Open("../github.com/abh/geoip/db/GeoLiteCity.dat")
-	g.gi = gi
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-	return g
+	g.gi, err = geoip.Open()
+	return g, err
 }
 
-func (g *Geo) GetLoc(ipAddress string) Loc {
-	record := g.gi.GetRecord(ipAddress)
-	if record != nil {
-		loc := Loc{
+func (g *Geo) GetLoc(ipAddress string) *Loc {
+	if record := g.gi.GetRecord(ipAddress); record != nil {
+		return &Loc{
 			Iso2Code:    record.CountryCode,
 			Iso3Code:    record.CountryCode3,
 			CountryName: record.CountryName,
@@ -41,7 +35,6 @@ func (g *Geo) GetLoc(ipAddress string) Loc {
 			Latitude:    record.Latitude,
 			Longitude:   record.Longitude,
 		}
-		return loc
 	}
-	return Loc{}
+	return nil
 }

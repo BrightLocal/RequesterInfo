@@ -5,19 +5,21 @@ import (
 	"geo"
 	"io"
 	"ip"
+	"log"
 	"net/http"
 )
 
 type Server struct {
-	geo *geo.Geo
+	listen string
+	geo    *geo.Geo
 }
 type AvailableMethods struct {
 	Methods []string `json:"methods"`
 }
 type AllResponse struct {
-	IpAddress string  `json:"ip_address"`
-	UserAgent string  `json:"user_agent"`
-	GeoLoc    geo.Loc `json:"geo_location"`
+	IpAddress string   `json:"ip_address"`
+	UserAgent string   `json:"user_agent"`
+	GeoLoc    *geo.Loc `json:"geo_location"`
 }
 type IpResponse struct {
 	IpAddress string `json:"ip_address"`
@@ -26,11 +28,13 @@ type UaResponse struct {
 	Ua string `json:"ua"`
 }
 type GeoResponse struct {
-	Geo geo.Loc `json:"geo_location`
+	Geo *geo.Loc `json:"geo_location"`
 }
 
-func New() *Server {
-	return &Server{}
+func New(listen string) *Server {
+	return &Server{
+		listen: listen,
+	}
 }
 
 func (s *Server) homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -83,11 +87,16 @@ func (s *Server) encodeOutput(content interface{}) string {
 }
 
 func (s *Server) Start() error {
-	s.geo = geo.New()
+	var err error
+	s.geo, err = geo.New()
+	if err != nil {
+		log.Fatalln("Error loading geo library")
+	}
 	http.HandleFunc("/", s.homeHandler)
 	http.HandleFunc("/all", s.allHandler)
 	http.HandleFunc("/ip", s.ipHandler)
 	http.HandleFunc("/ua", s.uaHandler)
 	http.HandleFunc("/geo", s.geoHandler)
-	return http.ListenAndServe(":8000", nil)
+	log.Printf("Listening on %s", s.listen)
+	return http.ListenAndServe(s.listen, nil)
 }
