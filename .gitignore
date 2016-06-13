@@ -1,4 +1,5 @@
 bin/*
 pkg/*
 src/requester-info/requester-info
+src/github.com/abh/geoip/*
 
